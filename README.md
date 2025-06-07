@@ -167,9 +167,9 @@ docker run -p 3000:3000 zkquant
 
 > _Below are placeholders. Replace with your actual screenshots and video links._
 
-| ![Screenshot 1](/screenshots/ui1.png) | ![Screenshot 2](/screenshots/ui2.png) | ![Screenshot 3](/screenshots/ui3.png) |
+| [Screenshot 1](/screenshots/ui1.png) | [Screenshot 2](/screenshots/ui2.png) | [Screenshot 3](/screenshots/ui3.png) |
 |:---:|:---:|:---:|
-| ![Screenshot 4](/screenshots/ui4.png) | ![Screenshot 5](/screenshots/ui5.png) | ![Screenshot 6](/screenshots/ui6.png) |
+| [Screenshot 4](/screenshots/ui4.png) | [Screenshot 5](/screenshots/ui5.png) | [Screenshot 6](/screenshots/ui6.png) |
 
 **UI Walkthrough Video:**
 
