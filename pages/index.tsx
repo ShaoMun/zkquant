@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { Box, Container, Typography, TextField, Button, Paper, Alert, Collapse } from '@mui/material';
-import { exampleStrategy } from '../utils/exampleStrategy';
 
 export default function Home() {
-  const [strategyCode, setStrategyCode] = useState(exampleStrategy);
+  const [strategyCode, setStrategyCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [result, setResult] = useState<{
     metrics: {
