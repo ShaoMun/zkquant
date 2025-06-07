@@ -179,8 +179,33 @@ export default function Home() {
     <Container maxWidth="md" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Box sx={{ width: '100%', py: 6 }}>
         <Fade in timeout={800}>
-          <Typography variant="h3" component="h1" gutterBottom align="center" sx={{ fontWeight: 700, letterSpacing: 1, color: 'text.primary' }}>
-            ZKQuant
+          <Typography
+            variant="h1"
+            component="h1"
+            gutterBottom
+            align="center"
+            sx={{
+              fontWeight: 900,
+              letterSpacing: 8,
+              color: 'transparent',
+              background: 'linear-gradient(90deg, #6dd5ed 0%, #8f6ed5 40%, #e66465 100%)',
+              backgroundSize: '200% auto',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontFamily: 'Geist, Arial, Helvetica, sans-serif',
+              textShadow: '0 4px 32px #8f6ed580, 0 1px 0 #fff2',
+              mb: 2,
+              fontSize: { xs: '2.8rem', sm: '4rem', md: '5rem' },
+              animation: 'shimmer 2.5s linear infinite',
+              '@keyframes shimmer': {
+                to: {
+                  backgroundPosition: '200% center'
+                }
+              }
+            }}
+          >
+            zkQuant
           </Typography>
         </Fade>
         <Slide in direction="down" timeout={700}>
