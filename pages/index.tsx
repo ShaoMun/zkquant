@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Box, Container, Typography, TextField, Button, Paper, Alert, Collapse } from '@mui/material';
+import { Box, Container, Typography, TextField, Button, Paper, Alert, Collapse, Stepper, Step, StepLabel, Fade, Slide, Tooltip } from '@mui/material';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import sha256 from 'crypto-js/sha256';
 import { ethers } from 'ethers';
 import contractAbi from '../artifacts/contracts/MasterModelMetadata.sol/MasterModelMetadata.json';
 
-function WalletConnectButton({ onAddress }: { onAddress: (address: string) => void }) {
-  const [address, setAddress] = useState('');
+function WalletConnectButton({ address, onAddress }: { address: string; onAddress: (address: string) => void }) {
   const connectWallet = async () => {
     if (
       typeof window === 'undefined' ||
@@ -18,7 +17,6 @@ function WalletConnectButton({ onAddress }: { onAddress: (address: string) => vo
     }
     try {
       const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
-      setAddress(accounts[0]);
       if (onAddress) onAddress(accounts[0]);
     } catch (err) {
       alert('Failed to connect wallet');
@@ -90,6 +88,13 @@ export default function Home() {
   // Add state for tx hash and error
   const [txHash, setTxHash] = useState<string | null>(null);
   const [onchainError, setOnchainError] = useState<string | null>(null);
+
+  // Stepper logic
+  const isWalletConnected = !!walletAddress;
+  const isGithubConnected = !!session;
+  const allConnected = isWalletConnected && isGithubConnected;
+  const steps = ['Connect Wallet', 'Connect GitHub', 'Submit Strategy'];
+  const activeStep = isWalletConnected ? (isGithubConnected ? 2 : 1) : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,131 +176,133 @@ export default function Home() {
   };
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h3" component="h1" gutterBottom align="center">
-          ZKQuant Strategy Platform
-        </Typography>
-        {/* Wallet and GitHub connect section */}
-        <Paper elevation={3} sx={{ p: 4, mt: 4, mb: 4 }}>
-          <Typography variant="h5" gutterBottom>Connect Your Accounts</Typography>
-          <WalletConnectButton onAddress={setWalletAddress} />
-          {session ? (
-            <Button variant="contained" color="secondary" onClick={() => signOut()} sx={{ mb: 2, ml: 2 }}>
-              Sign out GitHub ({session.user?.name || session.user?.email})
-            </Button>
-          ) : (
-            <Button variant="contained" color="primary" onClick={() => signIn('github')} sx={{ mb: 2, ml: 2 }}>
-              Sign in with GitHub
-            </Button>
-          )}
-          <Box sx={{ mt: 2 }}>
-            <Typography>Wallet: {walletAddress ? walletAddress : 'Not connected'}</Typography>
-            <Typography>GitHub: {session ? (session.user?.name || session.user?.email) : 'Not connected'}</Typography>
-            <Typography sx={{ fontWeight: 'bold' }}>zkID: {zkID ? zkID : 'Connect both to generate zkID'}</Typography>
-          </Box>
-        </Paper>
-        
-        <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Submit Your Trading Strategy
+    <Container maxWidth="md" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <Box sx={{ width: '100%', py: 6 }}>
+        <Fade in timeout={800}>
+          <Typography variant="h3" component="h1" gutterBottom align="center" sx={{ fontWeight: 700, letterSpacing: 1, color: 'text.primary' }}>
+            ZKQuant
           </Typography>
-          
-          <Typography variant="body1" color="text.secondary" paragraph>
-            Write your trading strategy in JavaScript. The strategy should return 'buy' or 'sell' signals based on the provided price data.
-          </Typography>
-          
-          <form onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              multiline
-              rows={15}
-              variant="outlined"
-              label="Strategy Code"
-              value={strategyCode}
-              onChange={(e) => setStrategyCode(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              disabled={isSubmitting}
-              fullWidth
-            >
-              {isSubmitting ? 'Evaluating Strategy...' : 'Evaluate Strategy'}
-            </Button>
-            <Button
-              variant="outlined"
-              color="secondary"
-              onClick={handleClear}
-              disabled={isSubmitting}
-              fullWidth
-              sx={{ mt: 1 }}
-            >
-              Clear All Strategies
-            </Button>
-          </form>
-
-          <Collapse in={result !== null}>
-            <Box sx={{ mt: 3 }}>
-              <Alert severity={result?.passed ? "success" : "error"} sx={{ mb: 2 }}>
-                {result?.passed 
-                  ? "Strategy passed all criteria!" 
-                  : "Strategy did not meet all criteria"}
-              </Alert>
-              {result && (
-                <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-                  <Typography variant="h6" gutterBottom>Evaluation Results</Typography>
-                  <Typography>Sharpe Ratio: {formatMetric(result.metrics.sharpeRatio)}</Typography>
-                  <Typography>Max Drawdown: {formatMetric(result.metrics.maxDrawdown)}%</Typography>
-                  <Typography>Total Return: {formatMetric(result.metrics.totalReturn)}%</Typography>
-                  <Typography>Profit Factor: {formatMetric(result.metrics.profitFactor)}</Typography>
-                  <Typography>Number of Trades: {result.metrics.numberOfTrades || 0}</Typography>
-                </Paper>
-              )}
-              {/* Master Model State Display */}
-              {result?.masterModel && (
-                <Paper variant="outlined" sx={{ p: 2 }}>
-                  <Typography variant="h6" gutterBottom>Master Quant Model State</Typography>
-                  <Typography variant="subtitle1" gutterBottom>Scores:</Typography>
-                  <Typography>Low Risk: {formatMetric(result.masterModel.scores.low)}</Typography>
-                  <Typography>Medium Risk: {formatMetric(result.masterModel.scores.medium)}</Typography>
-                  <Typography>High Risk: {formatMetric(result.masterModel.scores.high)}</Typography>
-                  <Box sx={{ mt: 2 }}>
-                    <Typography variant="subtitle1" gutterBottom>Strategies:</Typography>
-                    {result.masterModel.strategies.length === 0 && (
-                      <Typography color="text.secondary">No strategies in master model yet.</Typography>
-                    )}
-                    {result.masterModel.strategies.map((strat, idx) => (
-                      <Paper key={idx} variant="outlined" sx={{ p: 1, mb: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Strategy #{idx + 1}</Typography>
-                        <Typography variant="body2" sx={{ wordBreak: 'break-all' }}><b>Code:</b> {strat.code.slice(0, 100)}{strat.code.length > 100 ? '...' : ''}</Typography>
-                        <Typography variant="body2"><b>Sharpe Ratio:</b> {formatMetric(strat.metrics.sharpeRatio)}</Typography>
-                        <Typography variant="body2"><b>Max Drawdown:</b> {formatMetric(strat.metrics.maxDrawdown)}%</Typography>
-                        <Typography variant="body2"><b>Total Return:</b> {formatMetric(strat.metrics.totalReturn)}%</Typography>
-                        <Typography variant="body2"><b>Profit Factor:</b> {formatMetric(strat.metrics.profitFactor)}</Typography>
-                        <Typography variant="body2"><b>Number of Trades:</b> {strat.metrics.numberOfTrades}</Typography>
-                        <Typography variant="body2"><b>Weights:</b> Low: {formatMetric(strat.weights.low)}, Medium: {formatMetric(strat.weights.medium)}, High: {formatMetric(strat.weights.high)}</Typography>
-                      </Paper>
-                    ))}
+        </Fade>
+        <Slide in direction="down" timeout={700}>
+          <Paper elevation={6} sx={{ p: 4, mt: 4, mb: 4, bgcolor: 'background.paper', border: '1px solid #222', boxShadow: '0 4px 32px #0008', transition: 'box-shadow 0.3s' }}>
+            <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.primary' }}>Get Started</Typography>
+            <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 3 }}>
+              {steps.map((label, idx) => (
+                <Step key={label} completed={idx < activeStep}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2, alignItems: 'center', justifyContent: 'center', mb: 2, mt: 2 }}>
+              <Tooltip title={isGithubConnected ? 'GitHub connected' : 'Sign in with GitHub'} arrow>
+                <span>
+                  {session ? (
+                    <Button variant="contained" color="secondary" onClick={() => signOut()} sx={{ minWidth: 180, fontWeight: 500 }}>
+                      Sign out GitHub ({session.user?.name || session.user?.email})
+                    </Button>
+                  ) : (
+                    <Button variant="contained" color="primary" onClick={() => signIn('github')} sx={{ minWidth: 180, fontWeight: 500 }}>
+                      Sign in with GitHub
+                    </Button>
+                  )}
+                </span>
+              </Tooltip>
+              <Tooltip title={isWalletConnected ? 'Wallet connected' : 'Connect your MetaMask wallet'} arrow>
+                <span>
+                  <Box sx={{ mt: { xs: 1, sm: 0 } }}>
+                    <WalletConnectButton address={walletAddress} onAddress={setWalletAddress} />
                   </Box>
-                </Paper>
-              )}
-              {txHash && (
-                <Alert severity="info" sx={{ mt: 2 }}>
-                  Strategy metadata pushed on-chain! Tx Hash: <a href={`https://evm-sidechain.xrpl.org/tx/${txHash}`} target="_blank" rel="noopener noreferrer">{txHash}</a>
-                </Alert>
-              )}
-              {onchainError && (
-                <Alert severity="error" sx={{ mt: 2 }}>
-                  {onchainError}
-                </Alert>
-              )}
+                </span>
+              </Tooltip>
             </Box>
-          </Collapse>
-        </Paper>
+            <Box sx={{ mt: 2, textAlign: 'center' }}>
+              <Typography sx={{ fontWeight: 'bold', color: zkID ? 'success.main' : 'text.secondary', mt: 1 }}>zkID: {zkID ? zkID : 'Connect both to generate zkID'}</Typography>
+            </Box>
+            {!allConnected && (
+              <Alert severity="info" sx={{ mt: 3, fontWeight: 500, bgcolor: '#222', color: 'text.primary', border: '1px solid #444' }}>
+                Please connect both your wallet and GitHub to continue.
+              </Alert>
+            )}
+          </Paper>
+        </Slide>
+        {/* Strategy Form - only show if both connected */}
+        <Fade in={allConnected} timeout={600}>
+          <Box>
+            {allConnected && (
+              <Paper elevation={6} sx={{ p: 4, mt: 2, bgcolor: 'background.paper', border: '1px solid #222', boxShadow: '0 4px 32px #0008', transition: 'box-shadow 0.3s' }}>
+                <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, color: 'text.primary' }}>
+                  Submit Your Trading Strategy
+                </Typography>
+                <Typography variant="body1" color="text.secondary" paragraph>
+                  Paste your JavaScript trading strategy below. Your code should return <b>"buy"</b> or <b>"sell"</b> signals based on the price data input. 
+                </Typography>
+                <form onSubmit={handleSubmit}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={12}
+                    variant="outlined"
+                    label="Strategy Code"
+                    value={strategyCode}
+                    onChange={(e) => setStrategyCode(e.target.value)}
+                    sx={{ mb: 2, bgcolor: '#111', borderRadius: 2, '& .MuiInputBase-root': { color: 'text.primary', fontFamily: 'monospace' } }}
+                  />
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    disabled={isSubmitting}
+                    fullWidth
+                    sx={{ fontWeight: 600, py: 1.5, fontSize: 18, letterSpacing: 1, transition: 'background 0.2s' }}
+                  >
+                    {isSubmitting ? 'Evaluating Strategy...' : 'Evaluate Strategy'}
+                  </Button>
+                </form>
+                <Collapse in={result !== null}>
+                  <Box sx={{ mt: 3 }}>
+                    <Fade in={!!result} timeout={500}>
+                      <Alert severity={result?.passed ? "success" : "error"} sx={{ mb: 2, fontWeight: 500, bgcolor: result?.passed ? '#1b5e20' : '#222', color: 'text.primary', border: '1px solid #444' }}>
+                        {result?.passed 
+                          ? "Your strategy passed all evaluation criteria!"
+                          : "Your strategy did not meet the required criteria."}
+                      </Alert>
+                    </Fade>
+                    {result && (
+                      <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: '#111', border: '1px solid #333' }}>
+                        <Typography variant="h6" gutterBottom sx={{ color: 'text.primary' }}>Evaluation Results</Typography>
+                        <Typography>Sharpe Ratio: {formatMetric(result.metrics.sharpeRatio)}</Typography>
+                        <Typography>Max Drawdown: {formatMetric(result.metrics.maxDrawdown)}%</Typography>
+                        <Typography>Total Return: {formatMetric(result.metrics.totalReturn)}%</Typography>
+                        <Typography>Profit Factor: {formatMetric(result.metrics.profitFactor)}</Typography>
+                        <Typography>Number of Trades: {result.metrics.numberOfTrades || 0}</Typography>
+                      </Paper>
+                    )}
+                    {result?.masterModel && (
+                      <Paper variant="outlined" sx={{ p: 2, bgcolor: '#111', border: '1px solid #333' }}>
+                        <Typography variant="h6" gutterBottom sx={{ color: 'text.primary' }}>Master Quant Model Overview</Typography>
+                        <Typography variant="subtitle1" gutterBottom>Scores:</Typography>
+                        <Typography>Low Risk: {formatMetric(result.masterModel.scores.low)}</Typography>
+                        <Typography>Medium Risk: {formatMetric(result.masterModel.scores.medium)}</Typography>
+                        <Typography>High Risk: {formatMetric(result.masterModel.scores.high)}</Typography>
+                        <Typography sx={{ mt: 2 }}>Total Strategies: {result.masterModel.strategies.length}</Typography>
+                      </Paper>
+                    )}
+                    {txHash && (
+                      <Alert severity="info" sx={{ mt: 2, fontWeight: 500, bgcolor: '#222', color: 'text.primary', border: '1px solid #444' }}>
+                        Strategy metadata submitted on-chain! Tx Hash: <a href={`https://explorer.testnet.xrplevm.org/tx/${txHash}`} target="_blank" rel="noopener noreferrer" style={{ color: '#90caf9' }}>{txHash}</a>
+                      </Alert>
+                    )}
+                    {onchainError && (
+                      <Alert severity="error" sx={{ mt: 2, fontWeight: 500, bgcolor: '#222', color: 'text.primary', border: '1px solid #444' }}>
+                        {onchainError}
+                      </Alert>
+                    )}
+                  </Box>
+                </Collapse>
+              </Paper>
+            )}
+          </Box>
+        </Fade>
       </Box>
     </Container>
   );
