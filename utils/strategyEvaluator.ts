@@ -11,7 +11,7 @@ interface Trade {
   profit: number;
 }
 
-interface EvaluationResult {
+export interface EvaluationResult {
   sharpeRatio: number;
   maxDrawdown: number;
   totalReturn: number;

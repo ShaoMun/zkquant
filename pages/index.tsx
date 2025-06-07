@@ -13,13 +13,37 @@ export default function Home() {
       numberOfTrades: number;
     };
     passed: boolean;
+    masterModel?: {
+      strategies: {
+        code: string;
+        metrics: {
+          sharpeRatio: number;
+          maxDrawdown: number;
+          totalReturn: number;
+          profitFactor: number;
+          numberOfTrades: number;
+        };
+        weights: {
+          low: number;
+          medium: number;
+          high: number;
+        };
+      }[];
+      scores: {
+        low: number;
+        medium: number;
+        high: number;
+      };
+    };
+    duplicate?: boolean;
   } | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setResult(null);
-    
+    setDuplicateWarning(false);
     try {
       const response = await fetch('/api/submit-strategy', {
         method: 'POST',
@@ -28,11 +52,29 @@ export default function Home() {
         },
         body: JSON.stringify({ code: strategyCode }),
       });
-      
+      const data = await response.json();
+      setResult(data);
+      if (data.duplicate) {
+        setDuplicateWarning(true);
+      }
+    } catch (error) {
+      console.error('Error submitting strategy:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClear = async () => {
+    setIsSubmitting(true);
+    setDuplicateWarning(false);
+    try {
+      const response = await fetch('/api/submit-strategy', {
+        method: 'DELETE',
+      });
       const data = await response.json();
       setResult(data);
     } catch (error) {
-      console.error('Error submitting strategy:', error);
+      console.error('Error clearing strategies:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -42,6 +84,9 @@ export default function Home() {
     if (value === undefined || value === null) return 'N/A';
     return value.toFixed(2);
   };
+
+  // Check if the current code already exists in the master model
+  const isDuplicate = !!result?.masterModel?.strategies.some(s => s.code === strategyCode);
 
   return (
     <Container maxWidth="lg">
@@ -75,12 +120,28 @@ export default function Home() {
               type="submit"
               variant="contained"
               color="primary"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isDuplicate}
               fullWidth
             >
               {isSubmitting ? 'Evaluating Strategy...' : 'Evaluate Strategy'}
             </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={handleClear}
+              disabled={isSubmitting}
+              fullWidth
+              sx={{ mt: 1 }}
+            >
+              Clear All Strategies
+            </Button>
           </form>
+
+          {duplicateWarning && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              This strategy already exists in the master model and cannot be added again.
+            </Alert>
+          )}
 
           <Collapse in={result !== null}>
             <Box sx={{ mt: 3 }}>
@@ -89,15 +150,42 @@ export default function Home() {
                   ? "Strategy passed all criteria!" 
                   : "Strategy did not meet all criteria"}
               </Alert>
-              
               {result && (
-                <Paper variant="outlined" sx={{ p: 2 }}>
+                <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
                   <Typography variant="h6" gutterBottom>Evaluation Results</Typography>
                   <Typography>Sharpe Ratio: {formatMetric(result.metrics.sharpeRatio)}</Typography>
                   <Typography>Max Drawdown: {formatMetric(result.metrics.maxDrawdown)}%</Typography>
                   <Typography>Total Return: {formatMetric(result.metrics.totalReturn)}%</Typography>
                   <Typography>Profit Factor: {formatMetric(result.metrics.profitFactor)}</Typography>
                   <Typography>Number of Trades: {result.metrics.numberOfTrades || 0}</Typography>
+                </Paper>
+              )}
+              {/* Master Model State Display */}
+              {result?.masterModel && (
+                <Paper variant="outlined" sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>Master Quant Model State</Typography>
+                  <Typography variant="subtitle1" gutterBottom>Scores:</Typography>
+                  <Typography>Low Risk: {formatMetric(result.masterModel.scores.low)}</Typography>
+                  <Typography>Medium Risk: {formatMetric(result.masterModel.scores.medium)}</Typography>
+                  <Typography>High Risk: {formatMetric(result.masterModel.scores.high)}</Typography>
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle1" gutterBottom>Strategies:</Typography>
+                    {result.masterModel.strategies.length === 0 && (
+                      <Typography color="text.secondary">No strategies in master model yet.</Typography>
+                    )}
+                    {result.masterModel.strategies.map((strat, idx) => (
+                      <Paper key={idx} variant="outlined" sx={{ p: 1, mb: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Strategy #{idx + 1}</Typography>
+                        <Typography variant="body2" sx={{ wordBreak: 'break-all' }}><b>Code:</b> {strat.code.slice(0, 100)}{strat.code.length > 100 ? '...' : ''}</Typography>
+                        <Typography variant="body2"><b>Sharpe Ratio:</b> {formatMetric(strat.metrics.sharpeRatio)}</Typography>
+                        <Typography variant="body2"><b>Max Drawdown:</b> {formatMetric(strat.metrics.maxDrawdown)}%</Typography>
+                        <Typography variant="body2"><b>Total Return:</b> {formatMetric(strat.metrics.totalReturn)}%</Typography>
+                        <Typography variant="body2"><b>Profit Factor:</b> {formatMetric(strat.metrics.profitFactor)}</Typography>
+                        <Typography variant="body2"><b>Number of Trades:</b> {strat.metrics.numberOfTrades}</Typography>
+                        <Typography variant="body2"><b>Weights:</b> Low: {formatMetric(strat.weights.low)}, Medium: {formatMetric(strat.weights.medium)}, High: {formatMetric(strat.weights.high)}</Typography>
+                      </Paper>
+                    ))}
+                  </Box>
                 </Paper>
               )}
             </Box>
