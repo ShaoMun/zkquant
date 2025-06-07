@@ -1,5 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Container, Typography, TextField, Button, Paper, Alert, Collapse } from '@mui/material';
+import { signIn, signOut, useSession } from 'next-auth/react';
+import sha256 from 'crypto-js/sha256';
+
+function WalletConnectButton({ onAddress }: { onAddress: (address: string) => void }) {
+  const [address, setAddress] = useState('');
+  const connectWallet = async () => {
+    if (
+      typeof window === 'undefined' ||
+      !(window as any).ethereum ||
+      !(window as any).ethereum.isMetaMask
+    ) {
+      alert('MetaMask is not installed or not the active wallet!');
+      return;
+    }
+    try {
+      const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' });
+      setAddress(accounts[0]);
+      if (onAddress) onAddress(accounts[0]);
+    } catch (err) {
+      alert('Failed to connect wallet');
+    }
+  };
+  return (
+    <Button variant="contained" color={address ? 'success' : 'primary'} onClick={connectWallet} sx={{ mb: 2 }}>
+      {address ? `Connected: ${address.slice(0, 6)}...${address.slice(-4)}` : 'Connect Wallet'}
+    </Button>
+  );
+}
 
 export default function Home() {
   const [strategyCode, setStrategyCode] = useState('');
@@ -38,6 +66,24 @@ export default function Home() {
     duplicate?: boolean;
   } | null>(null);
   const [duplicateWarning, setDuplicateWarning] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
+  const { data: session } = useSession();
+
+  // Compute zkID if both wallet and GitHub are connected
+  const user = session?.user as any;
+  const githubId = user?.id || user?.email || '';
+  const zkID = walletAddress && githubId ? sha256(walletAddress + githubId).toString() : '';
+
+  // Store zkID mapping when both are available
+  useEffect(() => {
+    if (zkID && walletAddress) {
+      fetch('/api/zkid-map', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zkID, walletAddress }),
+      });
+    }
+  }, [zkID, walletAddress]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +140,25 @@ export default function Home() {
         <Typography variant="h3" component="h1" gutterBottom align="center">
           ZKQuant Strategy Platform
         </Typography>
+        {/* Wallet and GitHub connect section */}
+        <Paper elevation={3} sx={{ p: 4, mt: 4, mb: 4 }}>
+          <Typography variant="h5" gutterBottom>Connect Your Accounts</Typography>
+          <WalletConnectButton onAddress={setWalletAddress} />
+          {session ? (
+            <Button variant="contained" color="secondary" onClick={() => signOut()} sx={{ mb: 2, ml: 2 }}>
+              Sign out GitHub ({session.user?.name || session.user?.email})
+            </Button>
+          ) : (
+            <Button variant="contained" color="primary" onClick={() => signIn('github')} sx={{ mb: 2, ml: 2 }}>
+              Sign in with GitHub
+            </Button>
+          )}
+          <Box sx={{ mt: 2 }}>
+            <Typography>Wallet: {walletAddress ? walletAddress : 'Not connected'}</Typography>
+            <Typography>GitHub: {session ? (session.user?.name || session.user?.email) : 'Not connected'}</Typography>
+            <Typography sx={{ fontWeight: 'bold' }}>zkID: {zkID ? zkID : 'Connect both to generate zkID'}</Typography>
+          </Box>
+        </Paper>
         
         <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
           <Typography variant="h5" gutterBottom>
