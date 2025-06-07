@@ -45,7 +45,7 @@ type ResponseData = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<ResponseData & { duplicate?: boolean }>
+  res: NextApiResponse<ResponseData>
 ) {
   const masterModel = await masterModelPromise;
 
@@ -95,21 +95,18 @@ export default async function handler(
       evaluation.totalReturn >= 5 &&
       evaluation.profitFactor >= 1.3 &&
       evaluation.numberOfTrades >= 30;
-    let duplicate = false;
-    // Only add to master model if passed and not duplicate
+    // Only add to master model if passed
     if (passed) {
       const entry: StrategyEntry = {
         code,
         metrics: evaluation,
         weights: { low: 0, medium: 0, high: 0 }
       };
-      const added = await masterModel.addStrategy(entry);
-      if (!added) duplicate = true;
+      await masterModel.addStrategy(entry);
     }
     res.status(200).json({
       metrics: evaluation,
-      passed: passed && !duplicate,
-      duplicate,
+      passed,
       masterModel: {
         strategies: masterModel.strategies,
         scores: masterModel.scores

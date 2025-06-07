@@ -131,9 +131,6 @@ export default function Home() {
     return value.toFixed(2);
   };
 
-  // Check if the current code already exists in the master model
-  const isDuplicate = !!result?.masterModel?.strategies.some(s => s.code === strategyCode);
-
   return (
     <Container maxWidth="lg">
       <Box sx={{ my: 4 }}>
@@ -185,7 +182,7 @@ export default function Home() {
               type="submit"
               variant="contained"
               color="primary"
-              disabled={isSubmitting || isDuplicate}
+              disabled={isSubmitting}
               fullWidth
             >
               {isSubmitting ? 'Evaluating Strategy...' : 'Evaluate Strategy'}
@@ -201,12 +198,6 @@ export default function Home() {
               Clear All Strategies
             </Button>
           </form>
-
-          {duplicateWarning && (
-            <Alert severity="warning" sx={{ mt: 2 }}>
-              This strategy already exists in the master model and cannot be added again.
-            </Alert>
-          )}
 
           <Collapse in={result !== null}>
             <Box sx={{ mt: 3 }}>

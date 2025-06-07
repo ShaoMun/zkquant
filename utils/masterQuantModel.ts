@@ -23,10 +23,7 @@ export class MasterQuantModel {
   constructor() {}
 
   async addStrategy(entry: StrategyEntry) {
-    // Prevent duplicate strategies by code
-    if (this.strategies.some(s => s.code === entry.code)) {
-      return false;
-    }
+    // Allow all strategies, even duplicates
     this.strategies.push(entry);
     this.adjustWeights();
     this.updateScores();
