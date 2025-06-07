@@ -18,6 +18,7 @@ zkQuant is building the largest decentralized quant model by enabling strategy c
 - [UI Screenshots](#ui-screenshots)
 - [Demo Video](#demo-video)
 - [License](#license)
+- [Links & Resources](#links--resources)
 
 ---
 
@@ -124,6 +125,10 @@ yarn dev
 ```
 Visit [http://localhost:3000](http://localhost:3000).
 
+### Live App
+
+You can also try the deployed version here: [zkquant.vercel.app](https://zkquant.vercel.app)
+
 ### Build Contracts
 ```bash
 npx hardhat compile
@@ -191,3 +196,11 @@ MIT
 - [Hardhat](https://hardhat.org/)
 - [Trusted Execution Environments (TEE)](https://en.wikipedia.org/wiki/Trusted_execution_environment)
 - [Docker](https://www.docker.com/)
+
+---
+
+## Links & Resources
+
+- **Block Explorer:** [View Contract on XRPL EVM Sidechain](https://explorer.testnet.xrplevm.org/address/0xa54bE14213da914D9Ae698F32184FA0eFe34183A?tab=index)
+- **Live App:** [zkquant.vercel.app](https://zkquant.vercel.app)
+- **Presentation Slide:** [Canva Presentation](https://www.canva.com/design/DAGptVw07QM/J9dpzocNzpV4zud1vdvsvA/edit?utm_content=DAGptVw07QM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
