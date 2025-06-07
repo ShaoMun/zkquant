@@ -1,115 +1,110 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { useState } from 'react';
+import { Box, Container, Typography, TextField, Button, Paper, Alert, Collapse } from '@mui/material';
+import { exampleStrategy } from '../utils/exampleStrategy';
 
 export default function Home() {
+  const [strategyCode, setStrategyCode] = useState(exampleStrategy);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [result, setResult] = useState<{
+    metrics: {
+      sharpeRatio: number;
+      maxDrawdown: number;
+      totalReturn: number;
+      profitFactor: number;
+      numberOfTrades: number;
+    };
+    passed: boolean;
+  } | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setResult(null);
+    
+    try {
+      const response = await fetch('/api/submit-strategy', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: strategyCode }),
+      });
+      
+      const data = await response.json();
+      setResult(data);
+    } catch (error) {
+      console.error('Error submitting strategy:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const formatMetric = (value: number | undefined | null): string => {
+    if (value === undefined || value === null) return 'N/A';
+    return value.toFixed(2);
+  };
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              pages/index.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <Container maxWidth="lg">
+      <Box sx={{ my: 4 }}>
+        <Typography variant="h3" component="h1" gutterBottom align="center">
+          ZKQuant Strategy Platform
+        </Typography>
+        
+        <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
+          <Typography variant="h5" gutterBottom>
+            Submit Your Trading Strategy
+          </Typography>
+          
+          <Typography variant="body1" color="text.secondary" paragraph>
+            Write your trading strategy in JavaScript. The strategy should return 'buy' or 'sell' signals based on the provided price data.
+          </Typography>
+          
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              multiline
+              rows={15}
+              variant="outlined"
+              label="Strategy Code"
+              value={strategyCode}
+              onChange={(e) => setStrategyCode(e.target.value)}
+              sx={{ mb: 2 }}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              disabled={isSubmitting}
+              fullWidth
+            >
+              {isSubmitting ? 'Evaluating Strategy...' : 'Evaluate Strategy'}
+            </Button>
+          </form>
+
+          <Collapse in={result !== null}>
+            <Box sx={{ mt: 3 }}>
+              <Alert severity={result?.passed ? "success" : "error"} sx={{ mb: 2 }}>
+                {result?.passed 
+                  ? "Strategy passed all criteria!" 
+                  : "Strategy did not meet all criteria"}
+              </Alert>
+              
+              {result && (
+                <Paper variant="outlined" sx={{ p: 2 }}>
+                  <Typography variant="h6" gutterBottom>Evaluation Results</Typography>
+                  <Typography>Sharpe Ratio: {formatMetric(result.metrics.sharpeRatio)}</Typography>
+                  <Typography>Max Drawdown: {formatMetric(result.metrics.maxDrawdown)}%</Typography>
+                  <Typography>Total Return: {formatMetric(result.metrics.totalReturn)}%</Typography>
+                  <Typography>Profit Factor: {formatMetric(result.metrics.profitFactor)}</Typography>
+                  <Typography>Number of Trades: {result.metrics.numberOfTrades || 0}</Typography>
+                </Paper>
+              )}
+            </Box>
+          </Collapse>
+        </Paper>
+      </Box>
+    </Container>
   );
 }
