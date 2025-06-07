@@ -1,4 +1,3 @@
-import { SMA, RSI } from 'technicalindicators';
 import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';

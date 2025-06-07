@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  zkquant:
+    image: shaomun/zkquant:latest
+    container_name: zkquant
+    ports:
+      - "3000:3000"
+    restart: unless-stopped 
