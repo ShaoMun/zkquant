@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Box, Container, Typography, TextField, Button, Paper, Alert, Collapse } from '@mui/material';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import sha256 from 'crypto-js/sha256';
+import { ethers } from 'ethers';
+import contractAbi from '../artifacts/contracts/MasterModelMetadata.sol/MasterModelMetadata.json';
 
 function WalletConnectButton({ onAddress }: { onAddress: (address: string) => void }) {
   const [address, setAddress] = useState('');
@@ -85,10 +87,16 @@ export default function Home() {
     }
   }, [zkID, walletAddress]);
 
+  // Add state for tx hash and error
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [onchainError, setOnchainError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setResult(null);
+    setTxHash(null);
+    setOnchainError(null);
     setDuplicateWarning(false);
     try {
       const response = await fetch('/api/submit-strategy', {
@@ -100,11 +108,42 @@ export default function Home() {
       });
       const data = await response.json();
       setResult(data);
-      if (data.duplicate) {
-        setDuplicateWarning(true);
+      if (data.passed) {
+        // Prepare onchain data
+        const strategyId = ethers.keccak256(ethers.toUtf8Bytes(strategyCode));
+        const zkIDHex = '0x' + zkID; // zkID is already a sha256 hex string
+        const metrics = data.metrics;
+        // Convert metrics to uint16 (rounded)
+        const sharpeRatio = Math.round(metrics.sharpeRatio * 100);
+        const maxDrawdown = Math.round(metrics.maxDrawdown * 100);
+        const totalReturn = Math.round(metrics.totalReturn * 100);
+        const profitFactor = Math.round(metrics.profitFactor * 100);
+        const weight = 0; // Default to 0, can be updated later
+        // Connect to MetaMask
+        if (!(window as any).ethereum) throw new Error('MetaMask not found');
+        const provider = new ethers.BrowserProvider((window as any).ethereum);
+        const signer = await provider.getSigner();
+        const contract = new ethers.Contract(
+          '0xa54bE14213da914D9Ae698F32184FA0eFe34183A',
+          contractAbi.abi,
+          signer
+        );
+        // Send transaction
+        const tx = await contract.submitStrategy(
+          strategyId,
+          zkIDHex,
+          sharpeRatio,
+          maxDrawdown,
+          totalReturn,
+          profitFactor,
+          weight
+        );
+        setTxHash(tx.hash);
+        await tx.wait();
       }
-    } catch (error) {
-      console.error('Error submitting strategy:', error);
+    } catch (error: any) {
+      setOnchainError(error.message || 'On-chain submission failed');
+      console.error('On-chain error:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -243,6 +282,16 @@ export default function Home() {
                     ))}
                   </Box>
                 </Paper>
+              )}
+              {txHash && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  Strategy metadata pushed on-chain! Tx Hash: <a href={`https://evm-sidechain.xrpl.org/tx/${txHash}`} target="_blank" rel="noopener noreferrer">{txHash}</a>
+                </Alert>
+              )}
+              {onchainError && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {onchainError}
+                </Alert>
               )}
             </Box>
           </Collapse>

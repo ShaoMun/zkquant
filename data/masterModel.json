@@ -1,8 +1,24 @@
 {
-  "strategies": [],
+  "strategies": [
+    {
+      "code": "def strategy(prices, timestamps):\n    import numpy as np\n    \n    # Convert prices to numpy array for faster computation\n    prices_array = np.array(prices)\n    \n    # Calculate basic price statistics\n    current_price = prices_array[-1]\n    prev_price = prices_array[-2]\n    \n    # Calculate volatility\n    returns = np.diff(prices_array) / prices_array[:-1]\n    volatility = np.std(returns[-20:]) * np.sqrt(252)  # Annualized volatility\n    \n    # Calculate price levels\n    high_20 = np.max(prices_array[-20:])\n    low_20 = np.min(prices_array[-20:])\n    mid_20 = (high_20 + low_20) / 2\n    \n    # Calculate price momentum\n    price_change = (current_price - prev_price) / prev_price * 100\n    \n    # Calculate trend strength\n    sma_20 = np.mean(prices_array[-20:])\n    sma_50 = np.mean(prices_array[-50:])\n    trend_strength = (sma_20 - sma_50) / sma_50 * 100\n    \n    # Calculate RSI\n    delta = np.diff(prices_array)\n    gain = np.where(delta > 0, delta, 0)\n    loss = np.where(delta < 0, -delta, 0)\n    \n    avg_gain = np.mean(gain[-14:])\n    avg_loss = np.mean(loss[-14:])\n    \n    if avg_loss == 0:\n        rsi = 100\n    else:\n        rs = avg_gain / avg_loss\n        rsi = 100 - (100 / (1 + rs))\n    \n    # Skip if volatility is too high\n    if volatility > 0.4:  # More conservative volatility threshold\n        return None\n    \n    # Generate signals with realistic risk management\n    # Trend following with clear confirmation\n    if (current_price > sma_20 and \n        sma_20 > sma_50 and \n        price_change > 0 and\n        rsi > 50 and rsi < 65 and  # Not overbought\n        current_price < high_20 * 1.005 and  # Not too extended\n        trend_strength > 0.1):  # Clear trend\n        return 'buy'\n    elif (current_price < sma_20 and \n          sma_20 < sma_50 and \n          price_change < 0 and\n          rsi < 50 and rsi > 35 and  # Not oversold\n          current_price > low_20 * 0.995 and  # Not too extended\n          trend_strength < -0.1):  # Clear trend\n        return 'sell'\n    \n    # Mean reversion with tight risk control\n    elif (rsi > 70 and \n          price_change < 0 and\n          current_price > high_20 * 1.005 and\n          current_price < high_20 * 1.01 and  # Tight range\n          volatility < 0.3):  # Low volatility\n        return 'sell'\n    elif (rsi < 30 and \n          price_change > 0 and\n          current_price < low_20 * 0.995 and\n          current_price > low_20 * 0.99 and  # Tight range\n          volatility < 0.3):  # Low volatility\n        return 'buy'\n    \n    # Volatility breakout with confirmation\n    elif (abs(price_change) > volatility * 1.2 and \n          price_change > 0 and\n          rsi > 55 and\n          current_price > sma_20 and\n          trend_strength > 0.05):  # Trend confirmation\n        return 'buy'\n    elif (abs(price_change) > volatility * 1.2 and \n          price_change < 0 and\n          rsi < 45 and\n          current_price < sma_20 and\n          trend_strength < -0.05):  # Trend confirmation\n        return 'sell'\n    \n    return None  # No signal\n",
+      "metrics": {
+        "sharpeRatio": 0.699456311570833,
+        "maxDrawdown": 0.2480767092194753,
+        "totalReturn": 55.49964291679268,
+        "profitFactor": 10,
+        "numberOfTrades": 35
+      },
+      "weights": {
+        "low": 1,
+        "medium": 1,
+        "high": 1
+      }
+    }
+  ],
   "scores": {
-    "low": 0,
-    "medium": 0,
-    "high": 0
+    "low": 55.49964291679268,
+    "medium": 55.49964291679268,
+    "high": 55.49964291679268
   }
 }
