@@ -3,7 +3,33 @@ import { Box, Container, Typography, TextField, Button, Paper, Alert, Collapse, 
 import { signIn, signOut, useSession } from 'next-auth/react';
 import sha256 from 'crypto-js/sha256';
 import { ethers } from 'ethers';
-import contractAbi from '../artifacts/contracts/MasterModelMetadata.sol/MasterModelMetadata.json';
+
+const contractAbi = [
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
+    ],
+    "name": "MasterModelUpdated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "bytes32", "name": "strategyId", "type": "bytes32" },
+      { "indexed": true, "internalType": "bytes32", "name": "zkID", "type": "bytes32" },
+      { "indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256" }
+    ],
+    "name": "StrategySubmitted",
+    "type": "event"
+  },
+  { "inputs": [], "name": "getAllStrategyIds", "outputs": [ { "internalType": "bytes32[]", "name": "", "type": "bytes32[]" } ], "stateMutability": "view", "type": "function" },
+  { "inputs": [], "name": "masterModel", "outputs": [ { "internalType": "uint256", "name": "lastUpdate", "type": "uint256" }, { "components": [ { "internalType": "uint16", "name": "sharpeRatio", "type": "uint16" }, { "internalType": "uint16", "name": "maxDrawdown", "type": "uint16" }, { "internalType": "uint16", "name": "totalReturn", "type": "uint16" }, { "internalType": "uint16", "name": "profitFactor", "type": "uint16" } ], "internalType": "struct MasterModelMetadata.ModelMetrics", "name": "easy", "type": "tuple" }, { "components": [ { "internalType": "uint16", "name": "sharpeRatio", "type": "uint16" }, { "internalType": "uint16", "name": "maxDrawdown", "type": "uint16" }, { "internalType": "uint16", "name": "totalReturn", "type": "uint16" }, { "internalType": "uint16", "name": "profitFactor", "type": "uint16" } ], "internalType": "struct MasterModelMetadata.ModelMetrics", "name": "medium", "type": "tuple" }, { "components": [ { "internalType": "uint16", "name": "sharpeRatio", "type": "uint16" }, { "internalType": "uint16", "name": "maxDrawdown", "type": "uint16" }, { "internalType": "uint16", "name": "totalReturn", "type": "uint16" }, { "internalType": "uint16", "name": "profitFactor", "type": "uint16" } ], "internalType": "struct MasterModelMetadata.ModelMetrics", "name": "high", "type": "tuple" } ], "stateMutability": "view", "type": "function" },
+  { "inputs": [ { "internalType": "bytes32", "name": "", "type": "bytes32" } ], "name": "strategies", "outputs": [ { "internalType": "bytes32", "name": "strategyId", "type": "bytes32" }, { "internalType": "bytes32", "name": "zkID", "type": "bytes32" }, { "internalType": "uint256", "name": "submissionTimestamp", "type": "uint256" }, { "internalType": "uint16", "name": "sharpeRatio", "type": "uint16" }, { "internalType": "uint16", "name": "maxDrawdown", "type": "uint16" }, { "internalType": "uint16", "name": "totalReturn", "type": "uint16" }, { "internalType": "uint16", "name": "profitFactor", "type": "uint16" }, { "internalType": "uint16", "name": "weight", "type": "uint16" } ], "stateMutability": "view", "type": "function" },
+  { "inputs": [ { "internalType": "uint256", "name": "", "type": "uint256" } ], "name": "strategyIds", "outputs": [ { "internalType": "bytes32", "name": "", "type": "bytes32" } ], "stateMutability": "view", "type": "function" },
+  { "inputs": [ { "internalType": "bytes32", "name": "strategyId", "type": "bytes32" }, { "internalType": "bytes32", "name": "zkID", "type": "bytes32" }, { "internalType": "uint16", "name": "sharpeRatio", "type": "uint16" }, { "internalType": "uint16", "name": "maxDrawdown", "type": "uint16" }, { "internalType": "uint16", "name": "totalReturn", "type": "uint16" }, { "internalType": "uint16", "name": "profitFactor", "type": "uint16" }, { "internalType": "uint16", "name": "weight", "type": "uint16" } ], "name": "submitStrategy", "outputs": [], "stateMutability": "nonpayable", "type": "function" },
+  { "inputs": [ { "components": [ { "internalType": "uint16", "name": "sharpeRatio", "type": "uint16" }, { "internalType": "uint16", "name": "maxDrawdown", "type": "uint16" }, { "internalType": "uint16", "name": "totalReturn", "type": "uint16" }, { "internalType": "uint16", "name": "profitFactor", "type": "uint16" } ], "internalType": "struct MasterModelMetadata.ModelMetrics", "name": "easy", "type": "tuple" }, { "components": [ { "internalType": "uint16", "name": "sharpeRatio", "type": "uint16" }, { "internalType": "uint16", "name": "maxDrawdown", "type": "uint16" }, { "internalType": "uint16", "name": "totalReturn", "type": "uint16" }, { "internalType": "uint16", "name": "profitFactor", "type": "uint16" } ], "internalType": "struct MasterModelMetadata.ModelMetrics", "name": "medium", "type": "tuple" }, { "components": [ { "internalType": "uint16", "name": "sharpeRatio", "type": "uint16" }, { "internalType": "uint16", "name": "maxDrawdown", "type": "uint16" }, { "internalType": "uint16", "name": "totalReturn", "type": "uint16" }, { "internalType": "uint16", "name": "profitFactor", "type": "uint16" } ], "internalType": "struct MasterModelMetadata.ModelMetrics", "name": "high", "type": "tuple" } ], "name": "updateMasterModel", "outputs": [], "stateMutability": "nonpayable", "type": "function" }
+];
 
 function WalletConnectButton({ address, onAddress }: { address: string; onAddress: (address: string) => void }) {
   const connectWallet = async () => {
@@ -130,7 +156,7 @@ export default function Home() {
         const signer = await provider.getSigner();
         const contract = new ethers.Contract(
           '0xa54bE14213da914D9Ae698F32184FA0eFe34183A',
-          contractAbi.abi,
+          contractAbi,
           signer
         );
         // Send transaction
