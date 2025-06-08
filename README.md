@@ -175,7 +175,7 @@ docker run -p 3000:3000 zkquant
 ---
 
 ## Demo Video
-<img width="1470" alt="Screenshot 2025-06-08 at 11 29 57 AM" src="https://github.com/user-attachments/assets/195b5273-9ff2-4f14-b8d4-1260d8685438" />(https://www.loom.com/share/ca8a472d30b64ba6bd335dd7dd0616b6?sid=0e1ee759-1088-40e0-801f-272751cd3463)
+https://www.loom.com/share/ca8a472d30b64ba6bd335dd7dd0616b6?sid=0e1ee759-1088-40e0-801f-272751cd3463
 
 
 ---
