@@ -165,15 +165,11 @@ docker run -p 3000:3000 zkquant
 
 ## UI Screenshots
 
-> _Below are placeholders. Replace with your actual screenshots and video links._
+<img width="1470" alt="Screenshot 2025-06-08 at 6 45 14 AM" src="https://github.com/user-attachments/assets/0e0ab9f4-dc31-4542-8f05-6630a240d00f" /><img width="1470" alt="Screenshot 2025-06-08 at 6 46 12 AM" src="https://github.com/user-attachments/assets/5e5f5435-e04d-453e-a3dc-bc6e933c5cb6" /><img width="1470" alt="Screenshot 2025-06-08 at 6 47 01 AM" src="https://github.com/user-attachments/assets/c9b43ef2-9db8-4666-a2a3-f763389b27a2" /><img width="1470" alt="Screenshot 2025-06-08 at 6 47 38 AM" src="https://github.com/user-attachments/assets/7de698be-13d8-4e0c-9055-bb21caee6fc5" /><img width="1470" alt="Screenshot 2025-06-08 at 6 47 50 AM" src="https://github.com/user-attachments/assets/27cc871b-93af-4335-aef1-8b9df6ca22c1" /><img width="1470" alt="Screenshot 2025-06-08 at 6 48 35 AM" src="https://github.com/user-attachments/assets/3da05217-917c-468c-918a-76c20766a600" />
 
-| [Screenshot 1](/screenshots/ui1.png) | [Screenshot 2](/screenshots/ui2.png) | [Screenshot 3](/screenshots/ui3.png) |
-|:---:|:---:|:---:|
-| [Screenshot 4](/screenshots/ui4.png) | [Screenshot 5](/screenshots/ui5.png) | [Screenshot 6](/screenshots/ui6.png) |
 
 **UI Walkthrough Video:**
 
-[![UI Walkthrough](/screenshots/ui-walkthrough.mp4)]
 
 ---
 
