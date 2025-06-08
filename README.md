@@ -204,3 +204,4 @@ MIT
 - **Block Explorer:** [View Contract on XRPL EVM Sidechain](https://explorer.testnet.xrplevm.org/address/0xa54bE14213da914D9Ae698F32184FA0eFe34183A?tab=index)
 - **Live App:** [zkquant.vercel.app](https://zkquant.vercel.app)
 - **Presentation Slide:** [Canva Presentation](https://www.canva.com/design/DAGptVw07QM/J9dpzocNzpV4zud1vdvsvA/edit?utm_content=DAGptVw07QM&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+- **Twitter:** https://x.com/mun336699/status/1931538383341576211?s=46
