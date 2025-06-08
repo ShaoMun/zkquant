@@ -1,6 +1,16 @@
 # zkQuant
 
-zkQuant is building the largest decentralized quant model by enabling strategy contributors to collaborate securely and contribute verifiable strategies through zkID and TEE.
+zkQuant is a decentralized platform designed to build the largest open quant model in the world. It allows data scientists and quant strategists to contribute trading algorithms anonymously and securely using zero-knowledge identity (zkID) and Trusted Execution Environments (TEE). By aggregating, evaluating, and weighting thousands of strategies, zkQuant forms a master model that dynamically adapts to market conditions.
+
+The platform uses the XRP Ledger to store verifiable metadata such as strategy hashes, contributor zkIDs, performance summaries, and version checkpoints. This ensures transparency, immutability, and a fair contribution record for each participant. Rather than relying on reputation or social trust, zkQuant distributes rewards based on real strategy performance and contribution weights, verified on-chain.
+
+This system solves key issues in collaborative quant research:
+-Privacy for contributors
+-Security for code and identity
+-Fairness in attribution and rewards
+-Transparency in strategy evolution
+
+zkQuant is not just a platform—it's an open-source ecosystem for building the future of decentralized quant finance, with trust-minimized contribution, on-chain accountability, and cross-border reward distribution at its core.
 
 ---
 
