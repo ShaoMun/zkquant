@@ -9,6 +9,7 @@ zkQuant is building the largest decentralized quant model by enabling strategy c
 - [Architecture Overview](#architecture-overview)
 - [Tech Stack](#tech-stack)
 - [How It Works](#how-it-works)
+- [How We Use the XRPL](#how-we-use-the-xrpl)
 - [Smart Contract](#smart-contract)
 - [Strategy Evaluation](#strategy-evaluation)
 - [Master Quant Model](#master-quant-model)
