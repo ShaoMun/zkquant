@@ -63,6 +63,24 @@ zkQuant is building the largest decentralized quant model by enabling strategy c
 
 ---
 
+## How We Use the XRPL:
+-**On-Chain Metadata Storage**
+We store core quant strategy metadata—such as model metrics, timestamps, and zkID associations—directly on XRPL for auditability and traceability.
+
+-**EVM Sidechain Smart Contracts**
+Our core logic is deployed on the XRPL EVM sidechain, enabling compatibility with Solidity-based tooling and Ethereum-style smart contracts.
+
+-**zkID Binding to Wallets**
+We utilize wallet addresses on XRPL to anchor zkID-based identities, ensuring pseudonymous yet verifiable strategy submissions.
+
+-**Reward Distribution (Cross-Chain)**
+Future enhancements will use XRPL’s cross-chain features to distribute rewards across chains while maintaining transparency.
+
+-**Low-Cost, High-Speed Settlement**
+XRPL's fast and affordable transaction layer ensures efficient updates and claims, even at scale.
+
+---
+
 ## Smart Contract
 
 **File:** `contracts/MasterModelMetadata.sol`
