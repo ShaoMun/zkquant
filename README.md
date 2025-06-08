@@ -169,7 +169,10 @@ docker run -p 3000:3000 zkquant
 
 
 **UI Walkthrough Video:**
-![D0A75976-40D9-46E4-ABFE-F52B7A9AA7A9_1_206_a](https://github.com/user-attachments/assets/0b0e006d-61c9-49b8-b024-b6fb583ca019)
+
+
+https://github.com/user-attachments/assets/052d883a-998b-432b-a780-2533c7e0e1fc
+
 
 
 ---
